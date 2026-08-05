@@ -1,0 +1,7 @@
+@Api_HostAddress = http://localhost:5275
+
+### Healthy check
+GET {{Api_HostAddress}}/health/
+
+### OpenApi
+GET {{Api_HostAddress}}/openapi/v1.json

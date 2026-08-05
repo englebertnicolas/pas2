@@ -1,0 +1,22 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.4.6">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>4e1a41e5-ac96-4be4-a5ee-b2447d1d73ed</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="13.4.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ActuarialEngine\Api\PAS.ActuarialEngine.Api.csproj" />
+    <ProjectReference Include="..\Assets\Api\PAS.Assets.Api.csproj" />
+    <ProjectReference Include="..\DbMigrator\PAS.DbMigrator.csproj" />
+    <ProjectReference Include="..\Policies\Api\PAS.Policies.Api.csproj" />
+  </ItemGroup>
+
+</Project>

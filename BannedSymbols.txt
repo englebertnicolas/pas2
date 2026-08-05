@@ -1,0 +1,4 @@
+﻿M:Microsoft.EntityFrameworkCore.DbContext.SaveChanges;Wolverine handle the persistence, you should never call SaveChanges.
+M:Microsoft.EntityFrameworkCore.DbContext.SaveChanges(System.Boolean);Wolverine handle the persistence, you should never call SaveChanges.
+M:Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(System.Threading.CancellationToken);Wolverine handle the persistence, you should never call SaveChanges.
+M:Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(System.Boolean,System.Threading.CancellationToken);Wolverine handle the persistence, you should never call SaveChanges.

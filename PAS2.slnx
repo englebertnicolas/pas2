@@ -1,0 +1,33 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="aspire.config.json" />
+    <File Path="BannedSymbols.txt" />
+    <File Path="Directory.Build.targets" />
+    <File Path="nuget.config" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/DbMigrator/PAS.DbMigrator.csproj" Id="d7fe68f7-c095-4118-b645-2a11c9fe79f6" />
+    <Project Path="src/Host/PAS.AppHost.csproj" />
+  </Folder>
+  <Folder Name="/src/ActuarialEngine/">
+    <Project Path="src/ActuarialEngine/Api/PAS.ActuarialEngine.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Assets/">
+    <Project Path="src/Assets/Api/PAS.Assets.Api.csproj" Id="43ced1cc-e7cd-4aec-9179-2da5c855089d" />
+    <Project Path="src/Assets/Contracts/PAS.Assets.Contracts.csproj" Id="211a5354-248a-41e2-b3fa-61d5219eb4ad" />
+    <Project Path="tests/Assets/UnitTests/PAS.Assets.UnitTests.csproj" Id="f92336a9-96c7-44d3-98c3-c67c2fa87fb1" />
+  </Folder>
+  <Folder Name="/src/Common/">
+    <Project Path="src/Common/AspireServiceDefaults/PAS.AspireServiceDefaults.csproj" />
+    <Project Path="src/Common/AspNetCore/PAS.AspNetCore.csproj" Id="22de0e46-27cc-48ab-bd3a-787994371493" />
+    <Project Path="src/Common/Core/PAS.Core.csproj" />
+    <Project Path="src/Common/Domain/PAS.Domain.csproj" Id="1cafb59e-b86e-4691-a4ce-abe9dcde8625" />
+    <Project Path="src/Common/Persistence/PAS.Persistence.csproj" />
+  </Folder>
+  <Folder Name="/src/Policies/">
+    <Project Path="src/Policies/Api/PAS.Policies.Api.csproj" Id="89c710f4-65c7-4e2a-a698-107c95cdc193" />
+  </Folder>
+</Solution>

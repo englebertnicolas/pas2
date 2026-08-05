@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="PAS.Core" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.9" />
+    <!-- Microsoft.OpenApi v2.0.0 referenced by Microsoft.AspNetCore.OpenApi is vulnerable -> using v2.10.0 -->
+    <PackageReference Include="Microsoft.OpenApi" Version="2.10.0" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.16.11" />
+    <PackageReference Include="WolverineFx.EntityFrameworkCore" Version="6.17.3" />
+    <PackageReference Include="WolverineFx.FluentValidation" Version="6.17.3" />
+    <PackageReference Include="WolverineFx.RabbitMQ" Version="6.17.3" />
+    <PackageReference Include="WolverineFx.RuntimeCompilation" Version="6.17.3" />
+    <PackageReference Include="WolverineFx.SqlServer" Version="6.17.3" />
+  </ItemGroup>
+
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Core\PAS.Core.csproj" />
+    <ProjectReference Include="..\Domain\PAS.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

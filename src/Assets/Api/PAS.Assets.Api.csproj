@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>PAS.Assets</RootNamespace>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Using Include="PAS.AspNetCore" />
+    <Using Include="PAS.Core" />
+    <Using Include="PAS.Persistence.Linq" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\AspireServiceDefaults\PAS.AspireServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\Common\AspNetCore\PAS.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\Common\Core\PAS.Core.csproj" />
+    <ProjectReference Include="..\..\Common\Domain\PAS.Domain.csproj" />
+    <ProjectReference Include="..\..\Common\Persistence\PAS.Persistence.csproj" />
+    <ProjectReference Include="..\Contracts\PAS.Assets.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

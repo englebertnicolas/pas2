@@ -1,0 +1,19 @@
+@Api_HostAddress = http://localhost:5225
+
+### Healthy check
+GET {{Api_HostAddress}}/health/
+
+### OpenApi
+GET {{Api_HostAddress}}/openapi/v1.json
+
+### Get fund
+GET {{Api_HostAddress}}/funds/1
+
+### Create fund
+POST {{Api_HostAddress}}/funds/collective
+Content-Type: application/json
+{
+  "name": "Global Equity Fund",
+  "isin": "BE1234567890",
+  "currency": "EUR"
+}
