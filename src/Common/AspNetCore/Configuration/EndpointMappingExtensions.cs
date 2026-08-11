@@ -1,12 +1,16 @@
 ﻿using System.Reflection;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using PAS.AspNetCore.Endpoints;
 
 namespace PAS.AspNetCore.Configuration;
 
 public static class EndpointMappingExtensions {
 
-    public static WebApplication MapEndpointFromAssembly(this WebApplication app, Assembly assembly) {
+    public static IEndpointRouteBuilder MapEndpointFromAssembly(this IEndpointRouteBuilder app, Assembly assembly) {
+        var rootGroup = app.MapGroup(string.Empty);
+
+        // Map all endpoints from the assembly
         var endpointTypes = assembly.GetTypes()
             .Where(t => !t.IsInterface && !t.IsAbstract && typeof(IEndpoint).IsAssignableFrom(t));
 
@@ -18,14 +22,11 @@ public static class EndpointMappingExtensions {
             //// - Endpoint name = name of the class
             //var groupName = type.Namespace?.Split('.').Last() ?? "Default";
             //var endpointName = type.Name;
-
-            //var group = app.MapGroup(string.Empty)
+            //var group = rootGroup.MapGroup(string.Empty)
             //    .WithTags(groupName)
             //    .WithMetadata(new EndpointNameMetadata(endpointName));
 
-            //endpoint.MapEndpoint(group);
-
-            endpoint.MapEndpoint(app);
+            endpoint.MapEndpoint(rootGroup);
         }
 
         return app;

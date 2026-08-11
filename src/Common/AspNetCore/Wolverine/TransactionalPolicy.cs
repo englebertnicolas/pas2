@@ -7,7 +7,7 @@ using Wolverine.Runtime.Handlers;
 
 namespace PAS.AspNetCore.Wolverine;
 
-internal class HandlerTransactionPolicy : IHandlerPolicy {
+internal class TransactionalPolicy : IHandlerPolicy {
 
     public void Apply(IReadOnlyList<HandlerChain> chains, GenerationRules rules, IServiceContainer container) {
         // Add TransactionalAttribute to the command handlers if it doesn't already have one

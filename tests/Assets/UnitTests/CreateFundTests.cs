@@ -1,7 +1,5 @@
 ﻿using FluentAssertions;
-using PAS.Assets.Domain.CurrencyAggregate;
 using PAS.Assets.Domain.FundAggregate;
-using PAS.Domain;
 
 namespace PAS.Assets.UnitTests;
 
@@ -15,24 +13,27 @@ public class CreateFundTests {
         var currency = "EUR";
 
         // Act
-        var fund = Fund.CreateCollectiveFund(FundStatus.Active, name, Isin.Create(isin), CurrencyId.Create(currency));
+        var eoFund = Fund.CreateCollectiveFund(null, FundStatus.Active, name, isin, currency);
 
         // Assert
+        eoFund.IsSuccess.Should().BeTrue();
+        var fund = eoFund.Value;
         fund.Name.Should().Be(name);
         fund.Isin.Value.Should().Be(isin);
         fund.CurrencyId.Value.Should().Be(currency);
     }
 
     [Fact]
-    public void InvalidIsin_ShouldThrowException() {
+    public void InvalidIsin_ShouldFail() {
         // Arrange
         var invalidIsin = "BE123456789";
 
         // Act
-        var act = () => Isin.Create(invalidIsin);
+        var eoIsin = Isin.Create(invalidIsin);
 
         // Assert
-        act.Should().Throw<DomainException>()
-           .WithMessage("*must be exactly 12 characters long*");
+        eoIsin.IsSuccess.Should().BeFalse();
+        eoIsin.Errors.Should().ContainSingle()
+           .Which.Message.Should().Contain("must be exactly 12 characters long");
     }
 }

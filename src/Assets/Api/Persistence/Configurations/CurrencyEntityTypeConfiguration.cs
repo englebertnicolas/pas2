@@ -14,10 +14,9 @@ internal class CurrencyEntityTypeConfiguration : IEntityTypeConfiguration<Curren
 
         builder.Property(e => e.Id)
             .HasMaxLength(3)
-            .IsRequired()
             .HasConversion(
                 id => id.Value,
-                value => CurrencyId.Create(value)
+                value => CurrencyId.Hydrate(value)
             );
 
         builder

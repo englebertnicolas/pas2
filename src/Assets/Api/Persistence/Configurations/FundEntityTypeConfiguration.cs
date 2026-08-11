@@ -11,10 +11,14 @@ internal class FundEntityTypeConfiguration : IEntityTypeConfiguration<Fund> {
         builder.ToTable("Funds");
         builder.Ignore(e => e.DomainEvents);
 
-        builder.HasKey(e => e.Id);
+        builder.HasKey(e => e.Id)
+            .IsClustered(false); // To avoid fragmentation, since the Id is a Guid and not sequential
 
         builder.Property(e => e.Id)
-            .UseHiLo("FundSeq");
+            .HasConversion(
+                id => id.Value,
+                value => FundId.Hydrate(value)
+            );
 
         builder.Property(e => e.Type)
             .HasConversion<string>()
@@ -39,7 +43,7 @@ internal class FundEntityTypeConfiguration : IEntityTypeConfiguration<Fund> {
             .IsRequired()
             .HasConversion(
                 id => id.Value,
-                value => CurrencyId.Create(value)
+                value => CurrencyId.Hydrate(value)
             );
 
         builder.OwnsMany(e => e.Navs, navsBuilder => {

@@ -1,24 +1,30 @@
 ﻿using System.Reflection;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using PAS.AspNetCore.Wolverine;
 using PAS.Domain;
 using Wolverine;
 using Wolverine.EntityFrameworkCore;
 using Wolverine.ErrorHandling;
-using Wolverine.FluentValidation;
 using Wolverine.RabbitMQ;
 using Wolverine.SqlServer;
 
 namespace PAS.AspNetCore.Configuration;
 
-public static class WolverineExtensions {
+public static partial class WolverineExtensions {
 
-    public static IServiceCollection AddDefaultWolverine(this IServiceCollection services, string dbCnc, string dbSchemaName,
-        string rabbitMqCnc, bool autoProvisionRabbitMq = false, Assembly[]? discoveryAssemblies = null,
+    public static IServiceCollection AddDefaultWolverine(
+        this IServiceCollection services, 
+        string dbCnc, string dbSchemaName,
+        string rabbitMqCnc, bool autoProvisionRabbitMq = false, 
+        Assembly[]? discoveryAssemblies = null,
         Action<WolverineOptions>? configure = null) {
 
         return services.AddWolverine(options => {
-            options.CodeGeneration.TypeLoadMode = JasperFx.CodeGeneration.TypeLoadMode.Auto;
+            // Forces code generation into [project]/Internal/Generated/...
+            //options.CodeGeneration.SourceCodeWritingEnabled = true;
+            //options.CodeGeneration.TypeLoadMode = JasperFx.CodeGeneration.TypeLoadMode.Auto;
 
             // Forces the API to act independently rather than forming a cluster. This prevents startup errors when
             // multiple services boot simultaneously in .NET Aspire while sharing the same database.
@@ -45,15 +51,17 @@ public static class WolverineExtensions {
 
             // Automatically injects transactional middleware (and triggers SaveChangesAsync)
             // for commands.
-            options.Policies.Add<HandlerTransactionPolicy>();
+            //options.Policies.AutoApplyTransactions();
+            options.Policies.Add<TransactionalPolicy>();
 
             // Instructs Wolverine to automatically intercept, extract, and publish domain events
-            // from tracked EF entities (that inherit from 'Entity') before committing changes.
-            options.PublishDomainEventsFromEntityFrameworkCore<Entity>(x => x.DomainEvents);
+            // from tracked EF entities (that inherit from 'IEntity') before committing changes.
+            options.PublishDomainEventsFromEntityFrameworkCore<IEntity>(x => x.DomainEvents);
 
             // Plugs FluentValidation into the execution pipeline to automatically validate
             // incoming messages before they reach their respective handlers.
-            options.UseFluentValidation();
+            //options.UseFluentValidation().
+            options.Policies.Add<FluentValidationPolicy>();
 
             // Configures RabbitMQ as an external message broker transport layer.
             var rabbitMqOptions = options.UseRabbitMq(new Uri(rabbitMqCnc))
@@ -90,7 +98,12 @@ public static class WolverineExtensions {
             options.UseEntityFrameworkCoreWolverineManagedMigrations();
 
             // Configures retry policy.
-            options.Policies.OnException(ex => ex is TimeoutException || ex is HttpRequestException)
+            options.Policies
+                .OnException(ex => ex is TimeoutException || 
+                                   ex is TaskCanceledException || 
+                                   ex is HttpRequestException || 
+                                   (ex is SqlException sqlEx && (sqlEx.Number == 1205 || sqlEx.Number == 1222 )) || 
+                                   ex is DbUpdateConcurrencyException)
                 .RetryWithCooldown(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5))
                 .Then.ScheduleRetry(TimeSpan.FromHours(1), TimeSpan.FromHours(23));
 

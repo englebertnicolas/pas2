@@ -19,5 +19,9 @@ public abstract class DbContextBase(DbContextOptions options, string schemaName)
         optionsBuilder.UseSqlServer(x =>
             x.MigrationsHistoryTable("__EFMigrationsHistory", schemaName)
         );
+
+#if DEBUG
+        optionsBuilder.EnableSensitiveDataLogging();
+#endif
     }
 }

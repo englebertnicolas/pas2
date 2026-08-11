@@ -27,9 +27,9 @@ public class CreateCurrency : IEndpoint, IWolverineHandler {
     public void MapEndpoint(IEndpointRouteBuilder app) {
         app
             .MapPost("/currencies",
-                async (Command request, IMessageBus bus, CancellationToken ct) => {
-                    var res = await bus.InvokeAsync<Result>(request, ct);
-                    return TypedResults.Created($"/currencies/{res.Id}", res);
+                async Task<IResult> (Command request, IMessageBus bus, CancellationToken ct) => {
+                    var eoResult = await bus.InvokeAsync<ErrorOr<Result>>(request, ct);
+                    return eoResult.ToHttpResult(r => TypedResults.Created($"/currencies/{r.Id}", r));
                 })
             .Produces<Result>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status409Conflict)
@@ -40,16 +40,17 @@ public class CreateCurrency : IEndpoint, IWolverineHandler {
     }
 
     [Transactional]
-    public async Task<Result> HandleAsync(Command command, AssetDbContext dbContext, CancellationToken ct) {
-        var id = CurrencyId.Create(command.Id);
-        var symbol = CurrencySymbol.CreateOrNull(command.Symbol);
-        var currency = Currency.Create(id, command.EnglishName, symbol);
+    public async Task<ErrorOr<Result>> HandleAsync(Command command, AssetDbContext dbContext, CancellationToken ct) {
+        var eoCurrency = Currency.Create(command.Id, command.EnglishName, command.Symbol);
+        if (eoCurrency.IsFailure)
+            return eoCurrency.Errors;
+        var currency = eoCurrency.Value;
 
-        var idExists = await dbContext.Currencies.AnyAsync(x => x.Id == id, ct);
+        var idExists = await dbContext.Currencies.AnyAsync(x => x.Id == currency.Id, ct);
         if (idExists)
-            throw HttpException.CreateStatus409Conflict($"Currency identifier '{id}' already in use");
+            return ErrorInfo.Conflict($"Currency identifier '{currency.Id}' already in use");
 
         dbContext.Add(currency);
-        return new(currency.Id.Value);
+        return new Result(currency.Id.Value);
     }
 }

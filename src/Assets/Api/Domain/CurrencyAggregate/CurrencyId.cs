@@ -2,22 +2,23 @@
 
 namespace PAS.Assets.Domain.CurrencyAggregate;
 
-public record CurrencyId : ValueObject {
+public readonly record struct CurrencyId : IStronglyTypedId<CurrencyId, string> {
     public string Value { get; }
 
-    private CurrencyId(string value) {
-        Value = value;
-    }
+    private CurrencyId(string value) => Value = value;
 
-    public static CurrencyId Create(string value) {
-        if (string.IsNullOrWhiteSpace(value)) throw new DomainException("Invalid currency code.", nameof(CurrencyId));
+    public static ErrorOr<CurrencyId> From(string value) {
+        if (string.IsNullOrWhiteSpace(value))
+            return ErrorInfo.Unprocessable("Invalid currency code.");
 
         var cleanedValue = value.Trim().ToUpper();
         if (cleanedValue.Length != 3)
-            throw new DomainException("Currency id must be exactly 3 characters long.", nameof(CurrencyId));
+            return ErrorInfo.Unprocessable("Currency ID must be exactly 3 characters long.");
 
         return new CurrencyId(cleanedValue);
     }
 
-    public override string ToString() { return Value; }
+    public static CurrencyId Hydrate(string value) => new(value);
+
+    public override string ToString() => Value;
 }

@@ -2,6 +2,6 @@
 
 namespace PAS.Assets.Domain.FundAggregate.Events;
 
-public record FundStatusChangedToClosedDomainEvent(
-    long Id
+public record FundClosedDomainEvent(
+    Guid Id
 ) : IDomainEvent;

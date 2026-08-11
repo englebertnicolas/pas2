@@ -6,14 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using PAS.Domain;
 
 namespace PAS.AspNetCore.Diagnostics;
 
-public class GlobalExceptionHandler(
-    ILogger<GlobalExceptionHandler> logger,
-    IWebHostEnvironment env
-) : IExceptionHandler {
+public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger, IWebHostEnvironment env) : IExceptionHandler {
 
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
@@ -47,7 +43,7 @@ public class GlobalExceptionHandler(
                 ) {
                     Status = StatusCodes.Status400BadRequest,
                     Title = ReasonPhrases.GetReasonPhrase(StatusCodes.Status400BadRequest).ToSentenceCase(),
-                    Detail = "The request could not be validated.",
+                    Detail = "The request contains one or more validation errors.",
                     Instance = httpContext.Request.Path
                 };
                 validationProblem.Extensions["traceId"] = traceId;
@@ -56,29 +52,16 @@ public class GlobalExceptionHandler(
                 await httpContext.Response.WriteAsJsonAsync(validationProblem, ct);
                 return true;
 
-            case DomainException domainException:
-                var domainProblem = new ProblemDetails {
-                    Status = StatusCodes.Status422UnprocessableEntity,
-                    Title = ReasonPhrases.GetReasonPhrase(StatusCodes.Status422UnprocessableEntity).ToSentenceCase(),
-                    Detail = domainException.Message,
-                    Instance = httpContext.Request.Path
-                };
-                domainProblem.Extensions["traceId"] = traceId;
-
-                httpContext.Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
-                await httpContext.Response.WriteAsJsonAsync(domainProblem, ct);
-                return true;
-
-            case HttpException httpException:
+            case HttpRequestException httpException when httpException.StatusCode.HasValue:
                 var httpProblem = new ProblemDetails {
-                    Status = httpException.StatusCode,
-                    Title = ReasonPhrases.GetReasonPhrase(httpException.StatusCode).ToSentenceCase(),
+                    Status = (int)httpException.StatusCode,
+                    Title = ReasonPhrases.GetReasonPhrase((int)httpException.StatusCode).ToSentenceCase(),
                     Detail = httpException.Message,
                     Instance = httpContext.Request.Path
                 };
                 httpProblem.Extensions["traceId"] = traceId;
 
-                httpContext.Response.StatusCode = httpException.StatusCode;
+                httpContext.Response.StatusCode = (int)httpException.StatusCode;
                 await httpContext.Response.WriteAsJsonAsync(httpProblem, ct);
                 return true;
 

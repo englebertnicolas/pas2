@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using PAS.AspNetCore.Endpoints;
 using PAS.AspNetCore.Paging;
+using PAS.Assets.Domain.FundAggregate;
 using PAS.Assets.Persistence;
 using Wolverine;
 
@@ -9,7 +10,7 @@ namespace PAS.Assets.Features.Funds.GetNavList;
 
 public class GetFundNavList : IEndpoint, IWolverineHandler {
     public record Query(
-        long Id,
+        Guid Id,
         int PageNumber = 1,
         int PageSize = 100,
         bool OrderAsc = false
@@ -23,10 +24,10 @@ public class GetFundNavList : IEndpoint, IWolverineHandler {
 
     public void MapEndpoint(IEndpointRouteBuilder app) {
         app
-            .MapGet("/funds/{id:long}/navs",
+            .MapGet("/funds/{id:Guid}/navs",
                 async ([AsParameters] Query request, IMessageBus bus, CancellationToken ct) => {
-                    var res = await bus.InvokeAsync<Result>(request, ct);
-                    return TypedResults.Ok(res);
+                    var eoResult = await bus.InvokeAsync<ErrorOr<Result>>(request, ct);
+                    return eoResult.ToHttpResult(r => TypedResults.Ok(r));
                 })
             .Produces<Result>()
             .WithTags("Funds")
@@ -34,10 +35,14 @@ public class GetFundNavList : IEndpoint, IWolverineHandler {
             .WithDescription("Get a paginated list of fund NAVs.");
     }
 
-    public async Task<Result> HandleAsync(Query query, AssetDbContext dbContext, CancellationToken ct) {
+    public async Task<ErrorOr<Result>> HandleAsync(Query query, AssetDbContext dbContext, CancellationToken ct) {
+        var eoFundId = FundId.From(query.Id);
+        if (eoFundId.IsFailure) return eoFundId.Errors;
+        var fundId = eoFundId.Value;
+
         var items = await dbContext.Funds
             .AsNoTracking()
-            .Where(x => x.Id == query.Id)
+            .Where(x => x.Id == fundId)
             .SelectMany(x => x.Navs)
             .OrderBy(query.OrderAsc, x => x.Date)
             .Skip((query.PageNumber - 1) * query.PageSize)
@@ -51,6 +56,6 @@ public class GetFundNavList : IEndpoint, IWolverineHandler {
         bool hasNextPage = items.Count > query.PageSize;
         items = hasNextPage ? [.. items.SkipLast(1)] : items;
 
-        return new(items, hasNextPage);
+        return new Result(items, hasNextPage);
     }
 }

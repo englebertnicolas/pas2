@@ -18,7 +18,7 @@ public class SearchFunds : IEndpoint, IWolverineHandler {
 
     public record Result(IReadOnlyCollection<Result.Item> Items, bool HasNextPage) {
         public record Item(
-            long Id,
+            Guid Id,
             string Name,
             string Isin,
             string Type,
@@ -30,8 +30,8 @@ public class SearchFunds : IEndpoint, IWolverineHandler {
         app
             .MapPost("/funds/search",
                 async ([AsParameters] Query request, IMessageBus bus, CancellationToken ct) => {
-                    var res = await bus.InvokeAsync<Result>(request, ct);
-                    return TypedResults.Ok(res);
+                    var eoResult = await bus.InvokeAsync<ErrorOr<Result>>(request, ct);
+                    return eoResult.ToHttpResult(r => TypedResults.Ok(r));
                 })
             .Produces<Result>()
             .WithTags("Funds")
@@ -39,7 +39,7 @@ public class SearchFunds : IEndpoint, IWolverineHandler {
             .WithDescription("Search for funds matching the specified criteria.");
     }
 
-    public async Task<Result> HandleAsync(Query query, AssetDbContext dbContext, CancellationToken ct) {
+    public async Task<ErrorOr<Result>> HandleAsync(Query query, AssetDbContext dbContext, CancellationToken ct) {
         var items = await dbContext.Funds
             .AsNoTracking()
             .WhereSearch(x => x.Name, query.NameSearch)
@@ -47,7 +47,7 @@ public class SearchFunds : IEndpoint, IWolverineHandler {
             .Skip((query.PageNumber - 1) * query.PageSize)
             .Take(query.PageSize + 1)
             .Select(x => new Result.Item(
-                x.Id,
+                x.Id.Value,
                 x.Name,
                 x.Isin.Value,
                 x.Type.ToString(),
@@ -58,6 +58,6 @@ public class SearchFunds : IEndpoint, IWolverineHandler {
         bool hasNextPage = items.Count > query.PageSize;
         items = hasNextPage ? [.. items.SkipLast(1)] : items;
 
-        return new(items, hasNextPage);
+        return new Result(items, hasNextPage);
     }
 }

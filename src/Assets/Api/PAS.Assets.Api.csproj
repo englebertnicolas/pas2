@@ -10,6 +10,7 @@
   <ItemGroup>
     <Using Include="PAS.AspNetCore" />
     <Using Include="PAS.Core" />
+    <Using Include="PAS.Core.Results"/>
     <Using Include="PAS.Persistence.Linq" />
   </ItemGroup>
 

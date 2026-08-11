@@ -15,13 +15,15 @@ public record FundNav : ValueObject {
         Value = value;
     }
 
-    public static FundNav Create(DateTime date, double value) {
+    public static ErrorOr<FundNav> Create(DateTime date, double value) {
         if (date < new DateTime(1900, 1, 1))
-            throw new DomainException("Invalid NAV date.", nameof(Date));
+            return ErrorInfo.Unprocessable("Invalid NAV date.");
+
         if (date > DateTime.Now)
-            throw new DomainException("Fund NAV date cannot be in the future.", nameof(Date));
+            return ErrorInfo.Unprocessable("Fund NAV date cannot be in the future.");
+
         if (value <= 0)
-            throw new DomainException("Fund NAV must be greater than zero.", nameof(Value));
+            return ErrorInfo.Unprocessable("Fund NAV must be greater than zero.");
 
         return new FundNav(date, value);
     }

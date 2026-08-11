@@ -3,7 +3,6 @@
 #nullable disable
 
 namespace PAS.Assets.Persistence.Migrations {
-
     /// <inheritdoc />
     public partial class V_1_0_0 : Migration {
         /// <inheritdoc />
@@ -13,11 +12,6 @@ namespace PAS.Assets.Persistence.Migrations {
 
             migrationBuilder.CreateSequence(
                 name: "FundNavSeq",
-                schema: "Asset",
-                incrementBy: 10);
-
-            migrationBuilder.CreateSequence(
-                name: "FundSeq",
                 schema: "Asset",
                 incrementBy: 10);
 
@@ -37,7 +31,7 @@ namespace PAS.Assets.Persistence.Migrations {
                 name: "Funds",
                 schema: "Asset",
                 columns: table => new {
-                    Id = table.Column<long>(type: "bigint", nullable: false),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Type = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     Status = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
@@ -45,7 +39,8 @@ namespace PAS.Assets.Persistence.Migrations {
                     Isin = table.Column<string>(type: "nvarchar(12)", maxLength: 12, nullable: false)
                 },
                 constraints: table => {
-                    table.PrimaryKey("PK_Funds", x => x.Id);
+                    table.PrimaryKey("PK_Funds", x => x.Id)
+                        .Annotation("SqlServer:Clustered", false);
                     table.ForeignKey(
                         name: "FK_Funds_Currencies_CurrencyId",
                         column: x => x.CurrencyId,
@@ -62,7 +57,7 @@ namespace PAS.Assets.Persistence.Migrations {
                     Id = table.Column<long>(type: "bigint", nullable: false),
                     Date = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Value = table.Column<double>(type: "float", nullable: false),
-                    FundId = table.Column<long>(type: "bigint", nullable: false)
+                    FundId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table => {
                     table.PrimaryKey("PK_FundNavs", x => x.Id);
@@ -137,10 +132,6 @@ namespace PAS.Assets.Persistence.Migrations {
 
             migrationBuilder.DropSequence(
                 name: "FundNavSeq",
-                schema: "Asset");
-
-            migrationBuilder.DropSequence(
-                name: "FundSeq",
                 schema: "Asset");
         }
     }

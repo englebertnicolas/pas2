@@ -16,12 +16,18 @@ public class Currency : Entity<CurrencyId>, IAggregateRoot {
         Symbol = symbol;
     }
 
-    public static Currency Create(CurrencyId id, string englishName, CurrencySymbol? symbol) {
-        symbol ??= CurrencySymbol.Create(id.Value);
+    public static ErrorOr<Currency> Create(string id, string englishName, string? symbol) {
+        var eoCurrencyId = CurrencyId.From(id);
+        if (eoCurrencyId.IsFailure)
+            return eoCurrencyId.Errors;
+
+        var eoCurrencySymbol = CurrencySymbol.Create(symbol ?? id);
+        if (eoCurrencySymbol.IsFailure)
+            return eoCurrencySymbol.Errors;
 
         if (string.IsNullOrWhiteSpace(englishName))
-            throw new DomainException("Invalid currency name.", nameof(EnglishName));
+            return ErrorInfo.Unprocessable("Invalid currency name.");
 
-        return new(id, englishName, symbol);
+        return new Currency(eoCurrencyId.Value, englishName, eoCurrencySymbol.Value);
     }
 }

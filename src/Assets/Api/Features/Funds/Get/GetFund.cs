@@ -1,16 +1,17 @@
 ﻿using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using PAS.AspNetCore.Endpoints;
+using PAS.Assets.Domain.FundAggregate;
 using PAS.Assets.Persistence;
 using Wolverine;
 
 namespace PAS.Assets.Features.Funds.Get;
 
 public class GetFund : IEndpoint, IWolverineHandler {
-    public record Query(long Id);
+    public record Query(Guid Id);
 
     public record Result(
-        long Id,
+        Guid Id,
         string Name,
         string Isin,
         string Type,
@@ -20,10 +21,10 @@ public class GetFund : IEndpoint, IWolverineHandler {
 
     public void MapEndpoint(IEndpointRouteBuilder app) {
         app
-            .MapGet("/funds/{id:long}",
+            .MapGet("/funds/{id:Guid}",
                 async ([AsParameters] Query request, IMessageBus bus, CancellationToken ct) => {
-                    var res = await bus.InvokeAsync<Result>(request, ct);
-                    return TypedResults.Ok(res);
+                    var eoResult = await bus.InvokeAsync<ErrorOr<Result>>(request, ct);
+                    return eoResult.ToHttpResult(r => TypedResults.Ok(r));
                 })
             .Produces<Result>()
             .ProducesProblem(StatusCodes.Status404NotFound)
@@ -32,19 +33,26 @@ public class GetFund : IEndpoint, IWolverineHandler {
             .WithDescription("Get the fund identified by 'id'.");
     }
 
-    public async Task<Result> HandleAsync(Query query, AssetDbContext dbContext, CancellationToken ct) {
-        return await dbContext.Funds
+    public async Task<ErrorOr<Result>> HandleAsync(Query query, AssetDbContext dbContext, CancellationToken ct) {
+        var eoFundId = FundId.From(query.Id);
+        if (eoFundId.IsFailure) return eoFundId.Errors;
+        var fundId = eoFundId.Value;
+
+        var res = await dbContext.Funds
             .AsNoTracking()
-            .Where(x => x.Id == query.Id)
+            .Where(x => x.Id == fundId)
             .Select(x => new Result(
-                x.Id,
+                x.Id.Value,
                 x.Name,
                 x.Isin.Value,
                 x.Type.ToString(),
                 x.Status.ToString(),
                 x.CurrencyId.Value
             ))
-            .SingleOrDefaultAsync(ct)
-            ?? throw HttpException.CreateStatus404NotFound($"Fund '{query.Id}' not found.");
+            .SingleOrDefaultAsync(ct);
+
+        if (res == null)
+            return ErrorInfo.NotFound($"Fund '{query.Id}' not found.");
+        return res;
     }
 }

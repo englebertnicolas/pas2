@@ -23,8 +23,8 @@ public class GetCurrencyList : IEndpoint, IWolverineHandler {
         app
             .MapGet("/currencies",
                 async ([AsParameters] Query request, IMessageBus bus, CancellationToken ct) => {
-                    var res = await bus.InvokeAsync<Result>(request, ct);
-                    return TypedResults.Ok(res);
+                    var eoResult = await bus.InvokeAsync<ErrorOr<Result>>(request, ct);
+                    return eoResult.ToHttpResult(r => TypedResults.Ok(r));
                 })
             .Produces<Result>()
             .WithTags("Currencies")
@@ -32,7 +32,7 @@ public class GetCurrencyList : IEndpoint, IWolverineHandler {
             .WithDescription("Get a paginated list of currencies.");
     }
 
-    public async Task<Result> HandleAsync(Query query, AssetDbContext dbContext, CancellationToken ct) {
+    public async Task<ErrorOr<Result>> HandleAsync(Query query, AssetDbContext dbContext, CancellationToken ct) {
         var items = await dbContext.Currencies
             .AsNoTracking()
             .OrderBy(x => x.Id)

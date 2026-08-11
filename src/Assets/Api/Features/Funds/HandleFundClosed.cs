@@ -4,11 +4,11 @@ using Wolverine;
 
 namespace PAS.Assets.Features.Funds;
 
-public class HandleFundStatusChangedToClosed : IWolverineHandler {
+public class HandleFundClosed : IWolverineHandler {
 
-    public static ValueTask HandleAsync(FundStatusChangedToClosedDomainEvent domainEvent, IMessageBus bus) {
+    public static ValueTask HandleAsync(FundClosedDomainEvent domainEvent, IMessageBus bus) {
         // Raise an integration event to the message broker to notify other services about the change
-        return bus.PublishAsync(new FundStatusChangedToClosedIntegrationEvent(
+        return bus.PublishAsync(new FundClosedIntegrationEvent(
            domainEvent.Id
        ));
     }

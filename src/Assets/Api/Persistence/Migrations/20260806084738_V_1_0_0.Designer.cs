@@ -6,15 +6,14 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-
-
+using PAS.Assets.Persistence;
 
 #nullable disable
 
 namespace PAS.Assets.Persistence.Migrations
 {
     [DbContext(typeof(AssetDbContext))]
-    [Migration("20260715161802_V_1_0_0")]
+    [Migration("20260806084738_V_1_0_0")]
     partial class V_1_0_0
     {
         /// <inheritdoc />
@@ -30,9 +29,6 @@ namespace PAS.Assets.Persistence.Migrations
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.HasSequence("FundNavSeq")
-                .IncrementsBy(10);
-
-            modelBuilder.HasSequence("FundSeq")
                 .IncrementsBy(10);
 
             modelBuilder.Entity("PAS.Assets.Domain.CurrencyAggregate.Currency", b =>
@@ -64,11 +60,8 @@ namespace PAS.Assets.Persistence.Migrations
 
             modelBuilder.Entity("PAS.Assets.Domain.FundAggregate.Fund", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseHiLo(b.Property<long>("Id"), "FundSeq");
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("CurrencyId")
                         .IsRequired()
@@ -102,6 +95,8 @@ namespace PAS.Assets.Persistence.Migrations
                         });
 
                     b.HasKey("Id");
+
+                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
 
                     b.HasIndex("CurrencyId");
 
@@ -224,8 +219,8 @@ namespace PAS.Assets.Persistence.Migrations
                             b1.Property<DateTime>("Date")
                                 .HasColumnType("datetime2");
 
-                            b1.Property<long>("FundId")
-                                .HasColumnType("bigint");
+                            b1.Property<Guid>("FundId")
+                                .HasColumnType("uniqueidentifier");
 
                             b1.Property<double>("Value")
                                 .HasColumnType("float");
