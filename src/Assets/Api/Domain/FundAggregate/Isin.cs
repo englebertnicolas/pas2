@@ -17,6 +17,9 @@ public record Isin : ValueObject {
         if (cleanedValue.Length != 12)
             return ErrorInfo.Unprocessable("ISIN must be exactly 12 characters long.");
 
+        if (!cleanedValue.All(char.IsLetterOrDigit))
+            return ErrorInfo.Unprocessable("ISIN must contain only alphanumeric characters.");
+
         return new Isin(cleanedValue);
     }
 

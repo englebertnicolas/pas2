@@ -1,12 +1,12 @@
 ﻿using FluentAssertions;
 using PAS.Assets.Domain.FundAggregate;
 
-namespace PAS.Assets.UnitTests;
+namespace PAS.Assets.Tests.Domain.Funds;
 
-public class CreateFundTests {
+public class CreateFundTests : DomainTestBase {
 
     [Fact]
-    public void Create_WithCorrectData() {
+    public void Should_Success_When_Arguments_Are_Valid() {
         // Arrange
         var name = "Global Equity Fund";
         var isin = "BE1234567890";
@@ -23,17 +23,17 @@ public class CreateFundTests {
         fund.CurrencyId.Value.Should().Be(currency);
     }
 
-    [Fact]
-    public void InvalidIsin_ShouldFail() {
-        // Arrange
-        var invalidIsin = "BE123456789";
-
+    [Theory]
+    [InlineData("")]
+    [InlineData("BE123")]
+    [InlineData("FR-12345-ABC")]
+    public void Should_Fail_When_Isin_Is_Invalid(string invalidIsin) {
         // Act
         var eoIsin = Isin.Create(invalidIsin);
 
         // Assert
-        eoIsin.IsSuccess.Should().BeFalse();
-        eoIsin.Errors.Should().ContainSingle()
-           .Which.Message.Should().Contain("must be exactly 12 characters long");
+        eoIsin.IsFailure.Should().BeTrue();
+
+        Log($"Error message: {eoIsin.FirstError.Message}");
     }
 }

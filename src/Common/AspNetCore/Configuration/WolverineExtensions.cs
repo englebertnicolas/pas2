@@ -63,25 +63,31 @@ public static partial class WolverineExtensions {
             //options.UseFluentValidation().
             options.Policies.Add<FluentValidationPolicy>();
 
-            // Configures RabbitMQ as an external message broker transport layer.
-            var rabbitMqOptions = options.UseRabbitMq(new Uri(rabbitMqCnc))
-                // Automatically maps messages to RabbitMQ exchanges/queues based on naming conventions
-                // (rather than manual registration).
-                .UseConventionalRouting(routingConvention => {
-                    // Restricts conventional routing so that only messages that implement
-                    // IIntegrationEvent are routed out to RabbitMQ.
-                    routingConvention.IncludeTypes(type => typeof(IIntegrationEvent).IsAssignableFrom(type));
+            if (!string.IsNullOrEmpty(rabbitMqCnc)) {
+                // Configures RabbitMQ as an external message broker transport layer.
+                var rabbitMqOptions = options.UseRabbitMq(new Uri(rabbitMqCnc))
+                    // Automatically maps messages to RabbitMQ exchanges/queues based on naming conventions
+                    // (rather than manual registration).
+                    .UseConventionalRouting(routingConvention => {
+                        // Configures a single, dedicated listening queue for this specific API instance.
+                        string apiQueueName = AppDomain.CurrentDomain.FriendlyName;
+                        routingConvention.QueueNameForListener(_ => apiQueueName);
 
-                    // Endpoints discovered at runtime via conventional routing escape the global 
-                    // UseDurableOutboxOnAllSendingEndpoints() policy. This explicitly forces every dynamically 
-                    // discovered RabbitMQ endpoint to use the Transactional Outbox, preventing race conditions 
-                    // where messages are sent before the SQL Server transaction commits.
-                    routingConvention.ConfigureSending((endpoint, _) => endpoint.UseDurableOutbox());
-                });
+                        // Restricts conventional routing so that only messages that implement
+                        // IIntegrationEvent are routed out to RabbitMQ.
+                        routingConvention.IncludeTypes(type => typeof(IIntegrationEvent).IsAssignableFrom(type));
 
-            if (autoProvisionRabbitMq) {
-                // Forces Wolverine to automatically create missing RabbitMQ queues, exchanges, and bindings at startup.
-                rabbitMqOptions.AutoProvision();
+                        // Endpoints discovered at runtime via conventional routing escape the global 
+                        // UseDurableOutboxOnAllSendingEndpoints() policy. This explicitly forces every dynamically 
+                        // discovered RabbitMQ endpoint to use the Transactional Outbox, preventing race conditions 
+                        // where messages are sent before the SQL Server transaction commits.
+                        routingConvention.ConfigureSending((endpoint, _) => endpoint.UseDurableOutbox());
+                    });
+                    
+                if (autoProvisionRabbitMq) {
+                    // Forces Wolverine to automatically create RabbitMQ queues, exchanges, and bindings at startup.
+                    rabbitMqOptions.AutoProvision();
+                }
             }
 
             /*

@@ -18,7 +18,7 @@
   <Folder Name="/src/Assets/">
     <Project Path="src/Assets/Api/PAS.Assets.Api.csproj" Id="43ced1cc-e7cd-4aec-9179-2da5c855089d" />
     <Project Path="src/Assets/Contracts/PAS.Assets.Contracts.csproj" Id="211a5354-248a-41e2-b3fa-61d5219eb4ad" />
-    <Project Path="tests/Assets/UnitTests/PAS.Assets.UnitTests.csproj" Id="f92336a9-96c7-44d3-98c3-c67c2fa87fb1" />
+    <Project Path="tests/Assets/PAS.Assets.Tests.csproj" Id="f92336a9-96c7-44d3-98c3-c67c2fa87fb1" />
   </Folder>
   <Folder Name="/src/Common/">
     <Project Path="src/Common/AspireServiceDefaults/PAS.AspireServiceDefaults.csproj" />

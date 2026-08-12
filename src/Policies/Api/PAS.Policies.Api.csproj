@@ -10,7 +10,7 @@
   <ItemGroup>
     <Using Include="PAS.AspNetCore" />
     <Using Include="PAS.Core" />
-    <Using Include="PAS.Core.Results"/>
+    <Using Include="PAS.Core.Results" />
     <Using Include="PAS.Persistence.Linq" />
   </ItemGroup>
 
@@ -23,8 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Features\" />
     <Folder Include="Domain\" />
+    <Folder Include="Features\" />
   </ItemGroup>
 
 </Project>
