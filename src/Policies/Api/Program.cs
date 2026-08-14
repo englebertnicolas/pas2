@@ -20,7 +20,7 @@ builder.Services
     .AddHttpContextAccessor()
     .AddValidatorsFromAssembly(thisAssembly)
     .AddDefaultOpenApi()
-    .AddDefaultWolverine(dbCnc, PolicyDbContext.SchemaName, rabbitMqCnc, builder.Environment.IsDevelopment(), [thisAssembly])
+    .AddDefaultWolverine(dbCnc, PolicyDbContext.SchemaName, rabbitMqCnc, true, [thisAssembly])
     .AddDbContext<PolicyDbContext>(options => options.UseSqlServer(dbCnc), ServiceLifetime.Scoped, ServiceLifetime.Singleton);
 
 var app = builder.Build();

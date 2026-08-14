@@ -12,23 +12,22 @@ Why VSA? VSA emerged to combat the high **maintenance overhead and rigid abstrac
   - Each slice owns everything required to implement a single use case or endpoint.
 
 - CQRS
-  - Commands (mutations) and Queries (reads) are separated. Handlers live under `src/*/Application/Commands` and `src/*/Application/Queries`.
-  - HTTP endpoints are thin and send Commands/Queries to the message bus (Wolverine) instead of embedding business logic.
+  - A VSA architecture is naturally CQRS-oriented.
 
 - Domain-Driven Design (DDD)
   - Aggregates (e.g., Fund, Currency) and Value Objects (e.g., Isin) encapsulate business rules and invariants.
-  - Domain events are used (e.g., FundNavUpdatedDomainEvent) and collected from entities via Entity.DomainEvents.
+  - Domain events are used (e.g., FundNavChangedDomainEvent) and collected from entities via Entity.DomainEvents.
 
 - SOLID
   - Single Responsibility: handlers, repositories, entities and endpoints have distinct responsibilities.
   - Dependency Inversion: repository interfaces are defined in the domain and implemented in Infrastructure; the implementations are injected via DI at composition time.
 
-- Wolverine (messaging + transactional integration)
-  - Wolverine is configured (see `src/Common/Api/WolverineExtensions.cs`) to:
-	- use SQL Server for durable transport and for the transactional outbox/inbox;
+- Wolverine (in-memory mediator + message broker)
+  - Wolverine is configured (see `src/Common/AspNetCore/Configuration/WolverineExtensions.cs`) to:
+	- use RabbitMQ as message boker;
+	- enable durable outbox/inbox to ensure message delivery.
 	- integrate EF Core and automatically apply transactions to command handlers;
 	- publish DomainEvents extracted from EF-tracked entities;
-	- enable durable outbox/inbox to ensure message delivery.
   - Practical consequence: handlers add/modify entities through repositories but should not call `SaveChanges` directly — Wolverine applies the commit (SaveChangesAsync) within its pipeline.
 
 ---

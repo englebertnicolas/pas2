@@ -7,7 +7,7 @@ using PAS.Assets.Features.Funds.Create;
 
 namespace PAS.Assets.Tests.Features.Funds;
 
-public class CreateProductTests(AppFixture af) : IntegrationTestBase(af) {
+public class CreateProductTests(AppFixture f) : IntegrationTestBase(f) {
 
     [Fact]
     public async Task Should_Insert_Fund_In_Db_When_Arguments_Are_Valid() {

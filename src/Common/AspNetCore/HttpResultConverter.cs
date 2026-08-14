@@ -17,19 +17,30 @@ public static class HttpResultConverter {
         if (httpContextAccessor != null) {
             var key = Wolverine.FluentValidationPolicy.HttpContextItemKey;
             if (HttpContext.Items[key] is ValidationResult valResult && !valResult.IsValid)
-                return valResult.ToValidationProblemHttpResult();
+                return valResult.ToHttpResult();
         }
 
         // Check if arg errorOr is failure
         if (errorOr.IsFailure)
-            return errorOr.Errors.ToProblemHttpResult();
+            return errorOr.Errors.ToHttpResult();
 
         return successFunc(errorOr.Value);
     }
 
-    private static ProblemHttpResult ToProblemHttpResult(this ReadOnlySpan<ErrorInfo> errors) {
+    public static ProblemHttpResult ToHttpResult(this ErrorInfo error)
+        => ToHttpResult([error]);
+
+    public static ProblemHttpResult ToHttpResult(this IEnumerable<ErrorInfo> errors)
+        => ToHttpResult(errors is ErrorInfo[] array ? array.AsSpan() : [.. errors]);
+
+    public static ProblemHttpResult ToHttpResult(this ReadOnlySpan<ErrorInfo> errors) {
         ArgumentOutOfRangeException.ThrowIfZero(errors.Length, nameof(errors));
         var problem = errors[0].ToProblemDetails();
+        return TypedResults.Problem(problem);
+    }
+
+    public static ProblemHttpResult ToHttpResult(this ValidationResult valResult) {
+        var problem = valResult.ToValidationProblemDetails();
         return TypedResults.Problem(problem);
     }
 
@@ -46,11 +57,6 @@ public static class HttpResultConverter {
             Title = ReasonPhrases.GetReasonPhrase(statusCode).ToSentenceCase(),
             Detail = error.Message,
         };
-    }
-
-    private static ProblemHttpResult ToValidationProblemHttpResult(this ValidationResult valResult) {
-        var problem = valResult.ToValidationProblemDetails();
-        return TypedResults.Problem(problem);
     }
 
     private static ValidationProblemDetails ToValidationProblemDetails(this ValidationResult valResult) {

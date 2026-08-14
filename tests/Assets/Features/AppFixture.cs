@@ -7,24 +7,20 @@ using PAS.Assets.Persistence;
 using Respawn;
 using Testcontainers.MsSql;
 using Testcontainers.RabbitMq;
-using Wolverine;
 
 namespace PAS.Assets.Tests.Features;
 
 public sealed class AppFixture : WebApplicationFactory<Program>, IAsyncLifetime {
-    private readonly bool EnableRabbitMq = false; // Pas encore testé en activant RabbitMq ; va-t-on souhaiter tester les messages externes dans ces integration tests ?
-
     private readonly MsSqlContainer dbContainer;
-    private readonly RabbitMqContainer? rabbitContainer = null;
+    private readonly RabbitMqContainer rabbitContainer;
     private Respawner respawner = null!;
 
     public string DbConnectionString => dbContainer.GetConnectionString();
-    public string RabbitMqConnectionString => rabbitContainer?.GetConnectionString() ?? throw new("RabbitMq is disabled");
+    public string RabbitMqConnectionString => rabbitContainer.GetConnectionString();
 
     public AppFixture() {
         dbContainer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest").Build();
-        if (EnableRabbitMq)
-            rabbitContainer = new RabbitMqBuilder("rabbitmq:3-management").Build();
+        rabbitContainer = new RabbitMqBuilder("rabbitmq:3-management").Build();
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder) {
@@ -32,8 +28,7 @@ public sealed class AppFixture : WebApplicationFactory<Program>, IAsyncLifetime 
 
         // Initialize PAS settings
         builder.UseSetting("ConnectionStrings:Database", DbConnectionString);
-        if (EnableRabbitMq)
-            builder.UseSetting("ConnectionStrings:RabbitMq", RabbitMqConnectionString);
+        builder.UseSetting("ConnectionStrings:RabbitMq", RabbitMqConnectionString);
 
         builder.ConfigureServices(services => {
             // Replacing AssetDbContext to use the db container connection string)
@@ -49,10 +44,6 @@ public sealed class AppFixture : WebApplicationFactory<Program>, IAsyncLifetime 
             var dbContextDesc = services.SingleOrDefault(d => d.ServiceType == typeof(AssetDbContext));
             if (dbContextDesc != null) services.Remove(dbContextDesc);
             services.AddScoped<AssetDbContext>();
-
-            // Disabling message broker
-            if (!EnableRabbitMq)
-                services.DisableAllExternalWolverineTransports();
         });
     }
 
@@ -64,6 +55,14 @@ public sealed class AppFixture : WebApplicationFactory<Program>, IAsyncLifetime 
         );
 
         Log($"AppFixture: Applying DB migration...");
+        // We are not using "this.Services" to get the DbContext here, because want to apply db migrations
+        // before host startup.
+        var optionsBuilder = new DbContextOptionsBuilder<AssetDbContext>();
+        optionsBuilder.UseSqlServer(DbConnectionString);
+        using (var bootstrapDbContext = new AssetDbContext(optionsBuilder.Options)) {
+            await bootstrapDbContext.Database.MigrateAsync();
+        }
+
         using var scope = Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AssetDbContext>();
         await db.Database.MigrateAsync();
