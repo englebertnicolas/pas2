@@ -110,8 +110,8 @@ public static partial class WolverineExtensions {
                                    ex is HttpRequestException || 
                                    (ex is SqlException sqlEx && (sqlEx.Number == 1205 || sqlEx.Number == 1222 )) || 
                                    ex is DbUpdateConcurrencyException)
-                .RetryWithCooldown(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5))
-                .Then.ScheduleRetry(TimeSpan.FromHours(1), TimeSpan.FromHours(23));
+                .RetryWithCooldown(TimeSpan.FromSeconds(0.2), TimeSpan.FromSeconds(0.4), TimeSpan.FromSeconds(0.8))
+                .Then.ScheduleRetry(TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(60));
 
             // Configures the maximum number of threads available at one time for all integration event listeners.
             options.Policies.AllListeners(queue => queue.MaximumParallelMessages(5));
